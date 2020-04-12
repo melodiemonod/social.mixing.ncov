@@ -8,8 +8,8 @@ The user can specify the age range and age bands over which they want to obtain 
 
 The **eurostat 2011 Census database** (https://ec.europa.eu/eurostat/web/population-and-housing-census/census-data/2011-census) is used as demographic data.
 
-The smooth contact surface by one year age bands estimated with a CAR model for every country is:
-![Belgium](https://github.com/melodiemonod/social.mixing.ncov/blob/master/contact.matrix/figures/c.smooth_BE.pdf) ![Germany](/contact.matrix/figures/c.smooth_DE.pdf) ![Finland](figures/contact.matrix/c.smooth_FI.pdf) ![Great Britain](figures/contact.matrix/c.smooth_GB.pdf) 
+Visualization: The smooth contact surface by one year age bands estimated with a CAR model:
+![Belgium](/contact.matrix/figures/c.smooth_BE.pdf) ![Germany](/contact.matrix/figures/c.smooth_DE.pdf) ![Finland](contact.matrix/figures/c.smooth_FI.pdf) ![Great Britain](figures/contact.matrix/c.smooth_GB.pdf) 
 ![Italy](figures/contact.matrix/c.smooth_IT.pdf) ![Luxembourg](figures/contact.matrix/c.smooth_LU.pdf) ![Netherlands](figures/contact.matrix/c.smooth_NL.pdf) ![Poland](figures/contact.matrix/c.smooth_PL.pdf) 
 <p>
     <img src="/contact.matrix/figures/c.smooth_DE.pdf" width="220" height="240" />
