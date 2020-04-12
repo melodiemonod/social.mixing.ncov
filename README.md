@@ -9,8 +9,7 @@ The user can specify the age range and age bands over which they want to obtain 
 The **eurostat 2011 Census database** (https://ec.europa.eu/eurostat/web/population-and-housing-census/census-data/2011-census) is used as demographic data.
 
 Visualization: The smooth contact surface by one year age bands estimated with a CAR model:
-![](/contact.matrix/figures/allcountries.1.png)
-![](/contact.matrix/figures/allcountries.2.png)
+![](/contact.matrix/figures/c.smooth_allcountries.png)
 
 ## 2. `Epidemic model`
 We use specific age contact patterns and the latest estimates of the epidemiological parameters to simulate the evolution of the COVID-19 outbreak in the UK under a SEIR model. We compare the impact of the epidemic under different non-pharmaceutical physical distancing interventions (schools closure, social distancing, and lockdown).
