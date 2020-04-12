@@ -11,7 +11,9 @@ The **eurostat 2011 Census database** (https://ec.europa.eu/eurostat/web/populat
 The smooth contact surface by one year age bands estimated with a CAR model for every country is:
 ![Belgium](https://github.com/melodiemonod/social.mixing.ncov/blob/master/contact.matrix/figures/c.smooth_BE.pdf) ![Germany](/contact.matrix/figures/c.smooth_DE.pdf) ![Finland](figures/contact.matrix/c.smooth_FI.pdf) ![Great Britain](figures/contact.matrix/c.smooth_GB.pdf) 
 ![Italy](figures/contact.matrix/c.smooth_IT.pdf) ![Luxembourg](figures/contact.matrix/c.smooth_LU.pdf) ![Netherlands](figures/contact.matrix/c.smooth_NL.pdf) ![Poland](figures/contact.matrix/c.smooth_PL.pdf) 
-
+<p>
+    <img src="/contact.matrix/figures/c.smooth_DE.pdf" width="220" height="240" />
+</p>
 ## 2. `Epidemic model`
 We use specific age contact patterns and the latest estimates of the epidemiological parameters to simulate the evolution of the COVID-19 outbreak in the UK under a SEIR model. We compare the impact of the epidemic under different non-pharmaceutical physical distancing interventions (schools closure, social distancing, and lockdown).
 
