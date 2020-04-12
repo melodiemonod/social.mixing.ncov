@@ -4,14 +4,14 @@
 ## 1. `contact.matrix` 
 The code allows to estimate the contact matrix for every country in the **POLYMOD contact survey** (Mossong et al., 2008) using the model proposed by van de Kassteele et al. (2017). 
 These countries include BE (Belgium), DE (Germany), FI (Finland), GB (Great Britain), IT (Italy), LU (Luxembourg), NL (the Netherlands) or PL (Poland).
-The user can specify the age range and age bands over which they want to obtain the contact matrix. 
+Users can specify the age range and age bands over which they want to obtain the contact matrix. 
 
 The **eurostat 2011 Census database** (https://ec.europa.eu/eurostat/web/population-and-housing-census/census-data/2011-census) is used as demographic data.
 
 Visualization: The smooth contact surface by one year age bands estimated with a CAR model:
 ![](/contact.matrix/figures/c.smooth_allcountries.png)
 
-## 2. `Epidemic model`
+## 2. `epidemic.model`
 We use specific age contact patterns and the latest estimates of the epidemiological parameters to simulate the evolution of the COVID-19 outbreak in the UK under a SEIR model. We compare the impact of the epidemic under different non-pharmaceutical physical distancing interventions (schools closure, social distancing, and lockdown).
 
 ## References
