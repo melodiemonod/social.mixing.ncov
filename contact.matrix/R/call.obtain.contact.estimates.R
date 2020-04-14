@@ -4,7 +4,7 @@ indir = "~/git/social.mixing.ncov/contact.matrix"
 
 ## Inputs:
 # - country: BE (Belgium), DE (Germany), FI (Finland), GB (Great Britain), IT (Italy), LU (Luxembourg), NL (the Netherlands) or PL (Poland)
-# - age_range: age range for contact matrix, by default 0-100. Every age in age range should have a demographic estimate
+# - age_range: age range for contact matrix, by default 0-100. 
 # - age_bands (OPTIONAL): obtain estimates aggregated by age bands > 1
 
 ## Outputs:
@@ -30,4 +30,6 @@ indir = "~/git/social.mixing.ncov/contact.matrix"
 source(file.path(indir, "R", "obtain.contact.estimates.R"))
 
 ## Call functions ##
-obtain_contact_estimates(country = "IT", age_range = c(0,100), age_bands = 5, indir = indir)
+# example
+obtain.contact.estimates(country = "GB", age_range = c(0,100), age_bands = 5, indir = indir)
+
