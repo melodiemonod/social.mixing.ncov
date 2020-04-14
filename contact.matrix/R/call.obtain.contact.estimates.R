@@ -18,7 +18,7 @@ indir = "~/git/social.mixing.ncov/contact.matrix"
   #   m_ab: average number of contact between one individual in a and people in b
   #   c_ab: probability that two randomly selected individuals in a and b have contact
   #   c.sd_ab = empirical sd of c_ab
-# contact.data.agg_country.rda (OPTIONAL): Same as above aggregated by age bands
+# contact.tab.agg_country.rda (OPTIONAL): Same as above aggregated by age bands
 # polymod.mod.bin_GB.rda: INLA model
 # in ./figures/
 # c.crude_country.pdf: Crude estimate of contact matrix (i.e., Y/U)
@@ -30,4 +30,4 @@ indir = "~/git/social.mixing.ncov/contact.matrix"
 source(file.path(indir, "R", "obtain.contact.estimates.R"))
 
 ## Call functions ##
-obtain.contact.estimates(country = "GB", age_range = c(0,100), age_bands = 5)
+obtain_contact_estimates(country = "IT", age_range = c(0,100), age_bands = 5, indir = indir)

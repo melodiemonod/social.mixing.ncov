@@ -1,29 +1,36 @@
 ## PREPARE DEMOGRAPHIC DATA
 
-# COUNTRIES:
-## Austria (AT), Belgium (BE), Switzerland (CH), Germany (DE), Denemark (DK), Spain (ES), Finland (FI), France (FR), Italy (IT), Luxembourg (LU)
-## Netherlands (NL), Norway (NO), Poland (PL), Sweden (SE), United Kingdom (UK)
-
 # SOURCE
-  # `eurostat 2011 Census database`
-  # https://ec.europa.eu/eurostat/web/population-and-housing-census/census-data/2011-census
+  # United Nations: Department of Economic and Social Affairs
+  # © August 2019 by United Nation
 
-indir = "~/git/social.mixing.ncov/contact.matrix"
+outdir = "~/git/social.mixing.ncov/contact.matrix"
+link = "https://population.un.org/wpp/Download/Files/1_Indicators%20(Standard)/EXCEL_FILES/5_Interpolated/WPP2019_INT_F03_1_POPULATION_BY_AGE_ANNUAL_BOTH_SEXES.xlsx"
 
-demography = read.csv(file.path(indir, "data", "csvoutput_HC55_2020_04_12_18_44.csv"))
+library(readxl)
+library(httr)
+library(data.table)
+library(dplyr)
+
+countries.of.interest = c("Austria", "Belgium", "Switzerland", "Germany", "Denmark", "Spain", "Finland", "France", "Italy", "Luxembourg", "Netherlands", "Norway",
+                          "Poland", "Sweden", "United Kingdom")
+
+GET(link, write_disk(tf <- tempfile(fileext = ".xlsx")))
+df <- read_excel(tf)
+demography = df[-(1:11),]
+names(demography) <- as.matrix(demography[1, ])
+demography <- demography[-1, -c(1:2, 4:7)]
+
 demography = demography %>%
-  mutate(age = as.numeric(ifelse(AGE == "Y_GE100", 100,
-                      ifelse(AGE == "Y_LT1", 0,
-                             sub("Y","",AGE))))) %>%
-  rename(country = GEO, pop = VALUE) %>%
-  select(country, pop, age)
+  rename(country = `Region, subregion, country or area *`, year = `Reference date (as of 1 July)`) %>%
+  subset(country %in% countries.of.interest & year == 2019) %>%
+  reshape2::melt(id.vars = c("country", "year")) %>%
+  mutate(age = as.numeric(as.character(variable)),
+         pop = as.numeric(as.character(value))*1000) %>%
+  select(country, age, pop)
+  
 demography <- demography[order(demography$country, demography$age),]
 
-write.csv(demography, file.path(indir, "data", "pop.data.csv"), row.names = F)
+write.csv(demography, file.path(outdir, "data", "pop.data.csv"), row.names = F)
 
 
-
-### CONTACT SURVEY ###
-# Mossong et al. (2008): Belgium, Germany, Finland, Great Britain, Italy, Luxembourg, the Netherlands, Poland
-# Stromgren et al. (2012): Sweden
-# Beraud et al. (2015): France

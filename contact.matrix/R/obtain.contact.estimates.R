@@ -1,7 +1,7 @@
 ## PARTS OF THIS CODE IS TAKEN FROM "Contact-patterns" repository BELONGING TO kassteele
 ## https://github.com/kassteele/Contact-patterns
 
-prepare_contactsurvey_and_demographic_data = function(country)
+prepare_contactsurvey_and_demographic_data = function(country, indir)
   {
   tic = Sys.time()
 
@@ -17,7 +17,14 @@ prepare_contactsurvey_and_demographic_data = function(country)
   cont.data <- cont.data %>%
     subset(country == country.of.interest)
   # DEMOGRAPHIC DATA
-  if(country == "GB") country.of.interest = "UK"
+  country.of.interest = ifelse(country == "BE", "Belgium", 
+         ifelse(country == "DE", "Germany", 
+                ifelse(country == "FI", "Finland", 
+                       ifelse(country == "GB", "United Kingdom", 
+                              ifelse(country == "IT", "Italy",
+                                     ifelse(country == "LU", "Luxembourg", 
+                                            ifelse(country == "NL", "Netherlands",
+                                                   ifelse(country == "PL", "Poland", NA))))))))
   pop.data <- read.csv(file = file.path(indir, "data", paste0("pop.data.csv"))) %>%
     subset(country == country.of.interest)
 
@@ -33,7 +40,7 @@ prepare_contactsurvey_and_demographic_data = function(country)
   print(paste("prepare contact survey and demographic data", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-read_and_clean = function(country, age_range = c(0,100))
+read_and_clean = function(country, age_range = c(0,100), indir)
   {
   tic = Sys.time()
 
@@ -161,7 +168,7 @@ read_and_clean = function(country, age_range = c(0,100))
   print(paste("clean data", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-cross_tabulate = function(country)
+cross_tabulate = function(country, indir)
   {
   tic = Sys.time()
 
@@ -223,7 +230,7 @@ cross_tabulate = function(country)
   print(paste("cross tabulate data", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-estimate_contact_intensities = function(country)
+estimate_contact_intensities = function(country, indir)
   {
   tic = Sys.time()
 
@@ -325,7 +332,7 @@ estimate_contact_intensities = function(country)
   print(paste("estimate contact intensities", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-aggregate_contact_intensities = function(country, age_range, age_bands)
+aggregate_contact_intensities = function(country, age_range, age_bands, indir)
   {
   tic = Sys.time()
 
@@ -365,30 +372,30 @@ aggregate_contact_intensities = function(country, age_range, age_bands)
   # Aggegrate contact intensities over ages
   record.id.part <- match(x = contact.data$part.age, table = pop.data.wide$age)
   record.id.part.agg <- match(x = contact.data$part.age.cat, table = pop.data.agg$age.cat)
-  contact.data.agg <- within(contact.data, {
+  contact.tab.agg <- within(contact.data, {
     m   <- pop.data.wide[record.id.part, "T" ]*m  /pop.data.agg[record.id.part.agg, "T" ]
   })
-  contact.data.agg <- aggregate(cbind(m) ~ part.age.cat + cont.age.cat, FUN = sum, data = contact.data.agg)
+  contact.tab.agg <- aggregate(cbind(m) ~ part.age.cat + cont.age.cat, FUN = sum, data = contact.tab.agg)
 
   # Calculate contact rates
-  record.id.cont.agg <- match(x = contact.data.agg$cont.age.cat, table = pop.data.agg$age.cat)
-  contact.data.agg <- within(contact.data.agg, {
+  record.id.cont.agg <- match(x = contact.tab.agg$cont.age.cat, table = pop.data.agg$age.cat)
+  contact.tab.agg <- within(contact.tab.agg, {
     T  <- pop.data.agg[record.id.cont.agg, "T" ]
     c   <- m  / T
   })
 
   # Reorder columns
-  contact.data.agg <- contact.data.agg[, c("part.age.cat", "cont.age.cat", "T", "m", "c")]
+  contact.tab.agg <- contact.tab.agg[, c("part.age.cat", "cont.age.cat", "T", "m", "c")]
 
   # save
-  save(contact.data.agg, file = file.path(indir, "results", paste0("contact.data.agg_", country, ".rda")))
+  save(contact.tab.agg, file = file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
 
   # print time difference
   toc = Sys.time()
   print(paste("aggregate contact intensities", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-make_figures = function(country, age_bands)
+make_figures = function(country, age_range, age_bands, indir)
   {
   tic = Sys.time()
 
@@ -398,9 +405,9 @@ make_figures = function(country, age_bands)
   load(file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
 
   ## Settings
-  cols <- colorRampPalette(brewer.pal(name = "YlOrRd", n = 9))(n = 100) # Colors
+  cols <- colorRampPalette(brewer.pal(name = "YlOrRd", n = 9))(n = age_range[2]) # Colors
   euro.levs <- as.vector(outer(c(1, 2, 5), 10^(-3:3)))                  # "euro" levels for contour lines
-  ticks <- seq(from = 0, to = 100, by = 10)                              # Tick locations
+  ticks <- seq(from = age_range[1], to = age_range[2], by = 10)                              # Tick locations
 
   ## crude estimate
   # Set variable and range
@@ -443,12 +450,12 @@ make_figures = function(country, age_bands)
 
   ## Smooth estimate aggregated
   if(!is.null(age_bands)){
-    load(file.path(indir, "results", paste0("contact.data.agg_", country, ".rda")))
+    load(file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
 
-    ticks <- sort(unique(as.numeric(contact.data.agg$part.age.cat)))
+    ticks <- sort(unique(as.numeric(contact.tab.agg$part.age.cat)))
     age = ticks; n.age = length(ticks)
 
-    z <- log(contact.data.agg$c)
+    z <- log(contact.tab.agg$c)
 
     pdf(file.path(indir, "figures", paste0("c.smooth.agg_", country, ".pdf")),width=7,height=7,paper='special')
     plot.new()
@@ -457,8 +464,8 @@ make_figures = function(country, age_bands)
       ylim = c(min(age) - 0.5, max(age) + 0.5))
     image  (age, age, matrix(        z[0*n.age^2 + 1:n.age^2],  n.age, n.age), zlim = z.range, col = cols, useRaster = TRUE, add = TRUE)
     contour(age, age, matrix(1e6*exp(z[0*n.age^2 + 1:n.age^2]), n.age, n.age), levels = euro.levs, labcex = 0.5, lwd = 0.2, add = TRUE)
-    axis(side = 1, at = ticks, labels = sort(unique(contact.data.agg$part.age.cat)), lwd = 0.5)
-    axis(side = 2, at = ticks, labels = sort(unique(contact.data.agg$part.age.cat)), lwd = 0.5)
+    axis(side = 1, at = ticks, labels = sort(unique(contact.tab.agg$part.age.cat)), lwd = 0.5)
+    axis(side = 2, at = ticks, labels = sort(unique(contact.tab.agg$part.age.cat)), lwd = 0.5)
     box(lwd = 0.5)
     mtext("Participants", side = 1, adj = 0.5, line = -1.5, outer = TRUE)
     mtext("Contacts",     side = 2, adj = 0.5, line = -1.5, outer = TRUE)
@@ -491,7 +498,7 @@ make_figures = function(country, age_bands)
   print(paste("make figures", "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-obtain.contact.estimates = function(country, age_range = c(0,100), age_bands = NULL)
+obtain_contact_estimates = function(country, age_range = c(0,100), age_bands = NULL, indir= "~/")
  {
   `%notin%` <- Negate(`%in%`)
 
@@ -505,10 +512,10 @@ obtain.contact.estimates = function(country, age_range = c(0,100), age_bands = N
   }
   if(country %notin% c("BE", "DE", "FI", "GB", "IT", "LU", "NL", "PL")) stop("country should take one of those values: BE, DE, FI, GB, IT, LU, NL or PL")
 
-  prepare_contactsurvey_and_demographic_data(country)
-  read_and_clean(country, age_range)
-  cross_tabulate(country)
-  estimate_contact_intensities(country)
-  if(!is.null(age_bands)) aggregate_contact_intensities(country, age_range, age_bands)
-  make_figures(country, age_bands)
+  prepare_contactsurvey_and_demographic_data(country, indir)
+  read_and_clean(country, age_range, indir)
+  cross_tabulate(country, indir)
+  estimate_contact_intensities(country, indir)
+  if(!is.null(age_bands)) aggregate_contact_intensities(country, age_range, age_bands, indir)
+  make_figures(country, age_range, age_bands, indir)
  }
