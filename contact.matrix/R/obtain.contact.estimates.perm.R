@@ -53,6 +53,8 @@ make_figures_perm = function(country, indir)
 {
   tic = Sys.time()
   
+  library(RColorBrewer)
+  
   age = 0:79; n.age = length(age)
   age.cat <- cut(age, breaks = seq(0,80,5), include.lowest = TRUE, right = FALSE); n.age.cat = length(levels(age.cat))
   
@@ -110,7 +112,8 @@ make_figures_perm = function(country, indir)
   print(paste("make figures", "---", "for country", country, "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
 }
 
-obtain_contact_estimates_perm = function(country, path_to_estimates, indir = "~/"){
+obtain_contact_estimates_perm = function(country, path_to_estimates, indir = "~/")
+  {
   `%notin%` <- Negate(`%in%`)
   
   possible.countries = c("Austria", "Belgium", "Switzerland", "Germany", "Denmark", "Spain", "Finland", "France", "Italy", "Luxembourg", "Netherlands",
