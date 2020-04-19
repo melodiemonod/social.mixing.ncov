@@ -83,6 +83,23 @@ make_figures_perm = function(country, indir)
   mtext("Contacts",     side = 2, adj = 0.5, line = -1.5, outer = TRUE)
   dev.off()
   
+  z <- contact.tab$m
+  z.range.m <- c(0, 8)
+  
+  pdf(file.path(indir, "figures_perm", paste0("m_", str_replace_all(string=country, pattern=" ", repl=""), ".pdf")),width=7,height=7,paper='special')
+  plot.new()
+  plot.window(
+    xlim = c(min(age) - 0.5, max(age) + 0.5),
+    ylim = c(min(age) - 0.5, max(age) + 0.5))
+  image  (age, age, matrix(        z[0*n.age^2 + 1:n.age^2],  n.age, n.age), zlim = z.range.m, col = cols, useRaster = TRUE, add = TRUE)
+  #contour(age, age, matrix(1e6*exp(z[0*n.age^2 + 1:n.age^2]), n.age, n.age), levels = euro.levs, labcex = 0.5, lwd = 0.2, add = TRUE)
+  axis(side = 1, at = ticks, labels = ifelse(ticks %% 20 != 0, NA, ticks), lwd = 0.5)
+  axis(side = 2, at = ticks, labels = ifelse(ticks %% 20 != 0, NA, ticks), lwd = 0.5)
+  box(lwd = 0.5)
+  mtext("Participants", side = 1, adj = 0.5, line = -1.5, outer = TRUE)
+  mtext("Contacts",     side = 2, adj = 0.5, line = -1.5, outer = TRUE)
+  dev.off()
+  
   #aggregated by 5 y age bands
   load(file.path(indir, "results_perm", paste0("contact.matrix.agg_",  str_replace_all(string=country, pattern=" ", repl=""), ".rda")))
   ##settings
@@ -107,6 +124,21 @@ make_figures_perm = function(country, indir)
   mtext("Contacts",     side = 2, adj = 0.5, line = -1.5, outer = TRUE)
   dev.off()
   
+  z <- contact.tab.agg$m
+  
+  pdf(file.path(indir, "figures_perm", paste0("m.agg_", country, ".pdf")),width=7,height=7,paper='special')
+  plot.new()
+  plot.window(
+    xlim = c(min(age) - 0.5, max(age) + 0.5),
+    ylim = c(min(age) - 0.5, max(age) + 0.5))
+  image  (age, age, matrix(        z[0*n.age^2 + 1:n.age^2],  n.age, n.age), zlim = z.range.m, col = cols, useRaster = TRUE, add = TRUE)
+  contour(age, age, matrix(1e6*exp(z[0*n.age^2 + 1:n.age^2]), n.age, n.age), levels = euro.levs, labcex = 0.5, lwd = 0.2, add = TRUE)
+  axis(side = 1, at = ticks, labels = sort(unique(contact.tab.agg$part.age.cat)), lwd = 0.5)
+  axis(side = 2, at = ticks, labels = sort(unique(contact.tab.agg$part.age.cat)), lwd = 0.5)
+  box(lwd = 0.5)
+  mtext("Participants", side = 1, adj = 0.5, line = -1.5, outer = TRUE)
+  mtext("Contacts",     side = 2, adj = 0.5, line = -1.5, outer = TRUE)
+  dev.off()
   # print time difference
   toc = Sys.time()
   print(paste("make figures", "---", "for country", country, "---", round(as.numeric(toc-tic), digits = 4), "seconds"))
