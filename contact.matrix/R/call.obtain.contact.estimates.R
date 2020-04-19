@@ -31,5 +31,6 @@ source(file.path(indir, "R", "obtain.contact.estimates.R"))
 
 ## Call functions ##
 # example
-obtain.contact.estimates(country = "GB", age_range = c(0,100), age_bands = 5, indir = indir)
+obtain_contact_estimates(country = "NL", age_range = c(0,100), age_bands = 5, indir = indir)
+obtain_contact_estimates(country = "FR", age_range = c(0,100), age_bands = 5, indir = indir)
 
