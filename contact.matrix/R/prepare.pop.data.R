@@ -13,7 +13,7 @@ library(data.table)
 library(dplyr)
 
 countries.of.interest = c("Austria", "Belgium", "Switzerland", "Germany", "Denmark", "Spain", "Finland", "France", "Italy", "Luxembourg", "Netherlands", "Norway",
-                          "Poland", "Sweden", "United Kingdom")
+                          "Poland", "Sweden", "United Kingdom", "Greece", "Portugal")
 
 GET(link, write_disk(tf <- tempfile(fileext = ".xlsx")))
 df <- read_excel(tf)
