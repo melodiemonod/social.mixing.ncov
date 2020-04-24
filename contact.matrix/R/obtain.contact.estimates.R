@@ -1,7 +1,10 @@
 ## PARTS OF THIS CODE IS TAKEN FROM "Contact-patterns" repository BELONGING TO kassteele
 ## https://github.com/kassteele/Contact-patterns
 
-prepare_contactsurvey_and_demographic_data = function(country, indir)
+library(tidyverse)
+library(data.table)
+
+prepare_contactsurvey_and_demographic_data = function(country, indir, period = NULL)
   {
   tic = Sys.time()
 
@@ -20,6 +23,10 @@ prepare_contactsurvey_and_demographic_data = function(country, indir)
       subset(country == country.of.interest)
     cont.data <- cont.data %>%
       subset(country == country.of.interest)
+  }
+  if(!is.null(period)){
+    if(period == "weekday") part.data = subset(part.data, dayofweek <= 4) # Monday is 0
+    if(period == "weekend") part.data = subset(part.data, dayofweek > 4)
   }
   
   # DEMOGRAPHIC DATA
@@ -40,20 +47,22 @@ prepare_contactsurvey_and_demographic_data = function(country, indir)
   cont.data  <- subset(cont.data, select = c("local_id", "cnt_age_l", "cnt_age_r", "cnt_touch"))
 
   # save
-  save(part.data, cont.data, pop.data, file = file.path(indir, "analyses", paste0("contact.demography_", country, ".rda")))
+  if(is.null(period)) save(part.data, cont.data, pop.data, file = file.path(indir, "analyses", paste0("contact.demography_", country, ".rda")))
+  if(!is.null(period)) save(part.data, cont.data, pop.data, file = file.path(indir, "analyses", paste0("contact.demography_", country, "_",period, ".rda")))
 
   # print time difference
   toc = Sys.time()
   print(paste("prepare contact survey and demographic data", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-read_and_clean = function(country, age_range = c(0,100), indir)
+read_and_clean = function(country, age_range, indir, period = NULL)
   {
   tic = Sys.time()
 
   # Read data
-  load(file.path(indir, "analyses", paste0("contact.demography_", country, ".rda")))
-
+  if(is.null(period)) load(file.path(indir, "analyses", paste0("contact.demography_", country, ".rda")))
+  if(!is.null(period)) load(file.path(indir, "analyses", paste0("contact.demography_", country,"_",period, ".rda")))
+    
   #
   # Data pre-processing
   #
@@ -161,22 +170,26 @@ read_and_clean = function(country, age_range = c(0,100), indir)
   pop.data <- with(pop.data, pop.data[order(cont.age), ])
 
   # Save
-  save(polymod.data, file = file.path(indir, "analyses", paste0("polymod.data.bin_", country, ".rda")))
-  save(pop.data, file = file.path(indir, "analyses", paste0("pop.data.bin_", country, ".rda")))
+  if(is.null(period)) save(polymod.data, file = file.path(indir, "analyses", paste0("polymod.data.bin_", country, ".rda")))
+  if(!is.null(period)) save(polymod.data, file = file.path(indir, "analyses", paste0("polymod.data.bin_", country, "_",period, ".rda")))
+  if(is.null(period)) save(pop.data, file = file.path(indir, "analyses", paste0("pop.data.bin_", country,  ".rda")))
+  if(!is.null(period)) save(pop.data, file = file.path(indir, "analyses", paste0("pop.data.bin_", country, "_",period, ".rda")))
 
   # print time difference
   toc = Sys.time()
   print(paste("clean data", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-cross_tabulate = function(country, indir)
+cross_tabulate = function(country, indir, period = NULL)
   {
   tic = Sys.time()
 
   # Read
-  load(file.path(indir, "analyses", paste0("polymod.data.bin_", country, ".rda")))
-  load(file.path(indir, "analyses", paste0("pop.data.bin_", country, ".rda")))
-
+  if(is.null(period)) load(file.path(indir, "analyses", paste0("polymod.data.bin_", country, ".rda")))
+  if(!is.null(period)) load(file.path(indir, "analyses", paste0("polymod.data.bin_", country, "_",period,".rda")))
+  if(is.null(period)) load(file.path(indir, "analyses", paste0("pop.data.bin_", country, ".rda")))
+  if(!is.null(period)) load(file.path(indir, "analyses", paste0("pop.data.bin_", country, "_",period,".rda")))
+  
   #
   # Cross tabulation
   #
@@ -224,14 +237,15 @@ cross_tabulate = function(country, indir)
   #
 
   # Save
-  save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
-
+  if(is.null(period)) save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(!is.null(period)) save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, "_",period, ".rda")))
+  
   # print time difference
   toc = Sys.time()
   print(paste("cross tabulate data", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-estimate_contact_intensities = function(country, indir)
+estimate_contact_intensities = function(country, indir, period = NULL)
   {
   tic = Sys.time()
 
@@ -249,7 +263,8 @@ estimate_contact_intensities = function(country, indir)
   #
 
   # Read
-  load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(is.null(period)) load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(!is.null(period)) load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, "_",period, ".rda")))
 
   #
   # Model contact patterns with INLA
@@ -326,20 +341,23 @@ estimate_contact_intensities = function(country, indir)
   # Save results
   #
   #suppressWarnings(suppressMessages(save(polymod.mod, file = file.path(indir, "results", paste0("polymod.mod.bin_", country, ".rda")))))
-  save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(is.null(period)) save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(!is.null(period)) save(polymod.tab, file = file.path(indir, "results", paste0("polymod.tab.bin_", country, "_",period, ".rda")))
 
   # print time difference
   toc = Sys.time()
   print(paste("estimate contact intensities", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-aggregate_contact_intensities = function(country, age_range, age_bands, indir)
+aggregate_contact_intensities = function(country, age_range, age_bands, indir, period = NULL)
   {
   tic = Sys.time()
 
-  load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
-  load(file = file.path(indir, "analyses", paste0("pop.data.bin_", country, ".rda")))
-
+  if(is.null(period)) load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(!is.null(period)) load(file = file.path(indir, "results", paste0("polymod.tab.bin_", country, "_", period, ".rda")))
+  if(is.null(period)) load(file = file.path(indir, "analyses", paste0("pop.data.bin_", country, ".rda")))
+  if(!is.null(period)) load(file = file.path(indir, "analyses", paste0("pop.data.bin_", country, "_", period, ".rda")))
+  
   # Get ages and number of age classes
   age <- unique(polymod.tab$part.age)
   n.age <- length(age)
@@ -389,22 +407,24 @@ aggregate_contact_intensities = function(country, age_range, age_bands, indir)
   contact.tab.agg <- contact.tab.agg[, c("part.age.cat", "cont.age.cat", "T", "m", "c")]
 
   # save
-  save(contact.tab.agg, file = file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
-
+  if(is.null(period)) save(contact.tab.agg, file = file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
+  if(!is.null(period)) save(contact.tab.agg, file = file.path(indir, "results", paste0("contact.tab.agg_", country, "_", period, ".rda")))
+  
   # print time difference
   toc = Sys.time()
   print(paste("aggregate contact intensities", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-make_figures = function(country, age_range, age_bands, indir)
+make_figures = function(country, age_range, age_bands, indir, period = NULL)
   {
   tic = Sys.time()
 
   library(RColorBrewer)
 
   # load results
-  load(file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
-
+  if(is.null(period)) load(file.path(indir, "results", paste0("polymod.tab.bin_", country, ".rda")))
+  if(!is.null(period)) load(file.path(indir, "results", paste0("polymod.tab.bin_", country, "_", period, ".rda")))
+  
   ## Settings
   cols <- colorRampPalette(brewer.pal(name = "YlOrRd", n = 9))(n = age_range[2]) # Colors
   euro.levs <- as.vector(outer(c(1, 2, 5), 10^(-3:3)))                  # "euro" levels for contour lines
@@ -418,7 +438,8 @@ make_figures = function(country, age_range, age_bands, indir)
   z <- with(polymod.tab, log(1 + y/(U)))
   z.range <- range(z, na.rm = TRUE)
 
-  pdf(file.path(indir, "figures", paste0("c.crude_", country, ".pdf")),width=7,height=7,paper='special')
+  if(is.null(period)) pdf(file.path(indir, "figures", paste0("c.crude_", country, ".pdf")),width=7,height=7,paper='special')
+  if(!is.null(period)) pdf(file.path(indir, "figures", paste0("c.crude_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
   plot.new()
   plot.window(
     xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -435,7 +456,8 @@ make_figures = function(country, age_range, age_bands, indir)
   z <- log(polymod.tab$c)
   z.range <- range(z)
 
-  pdf(file.path(indir, "figures", paste0("c.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(is.null(period)) pdf(file.path(indir, "figures", paste0("c.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(!is.null(period)) pdf(file.path(indir, "figures", paste0("c.smooth_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
   plot.new()
   plot.window(
     xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -453,7 +475,8 @@ make_figures = function(country, age_range, age_bands, indir)
   z <- polymod.tab$m
   z.range.m <- c(0,8)
   
-  pdf(file.path(indir, "figures", paste0("m.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(is.null(period)) pdf(file.path(indir, "figures", paste0("m.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(!is.null(period)) pdf(file.path(indir, "figures", paste0("m.smooth_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
   plot.new()
   plot.window(
     xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -469,14 +492,17 @@ make_figures = function(country, age_range, age_bands, indir)
   
   ## Smooth estimate aggregated
   if(!is.null(age_bands)){
-    load(file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
-
+    
+    if(is.null(period)) load(file.path(indir, "results", paste0("contact.tab.agg_", country, ".rda")))
+    if(!is.null(period)) load(file.path(indir, "results", paste0("contact.tab.agg_", country, "_", period, ".rda")))
+    
     ticks <- sort(unique(as.numeric(contact.tab.agg$part.age.cat)))
     age = ticks; n.age = length(ticks)
 
     z <- log(contact.tab.agg$c)
 
-    pdf(file.path(indir, "figures", paste0("c.smooth.agg_", country, ".pdf")),width=7,height=7,paper='special')
+    if(is.null(period)) pdf(file.path(indir, "figures", paste0("c.smooth.agg_", country, ".pdf")),width=7,height=7,paper='special')
+    if(!is.null(period)) pdf(file.path(indir, "figures", paste0("c.smooth.agg_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
     plot.new()
     plot.window(
       xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -492,7 +518,8 @@ make_figures = function(country, age_range, age_bands, indir)
     
     z <- contact.tab.agg$m
     
-    pdf(file.path(indir, "figures", paste0("m.smooth.agg_", country, ".pdf")),width=7,height=7,paper='special')
+    if(is.null(period)) pdf(file.path(indir, "figures", paste0("m.smooth.agg_", country, ".pdf")),width=7,height=7,paper='special')
+    if(!is.null(period)) pdf(file.path(indir, "figures", paste0("m.smooth.agg_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
     plot.new()
     plot.window(
       xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -514,7 +541,8 @@ make_figures = function(country, age_range, age_bands, indir)
   z <- log(polymod.tab$c.sd)
   z.range <- range(z)
 
-  pdf(file.path(indir, "figures", paste0("sd.c.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(is.null(period)) pdf(file.path(indir, "figures", paste0("sd.c.smooth_", country, ".pdf")),width=7,height=7,paper='special')
+  if(!is.null(period)) pdf(file.path(indir, "figures", paste0("sd.c.smooth_", country, "_", period, ".pdf")),width=7,height=7,paper='special')
   plot.new()
   plot.window(
     xlim = c(min(age) - 0.5, max(age) + 0.5),
@@ -533,7 +561,7 @@ make_figures = function(country, age_range, age_bands, indir)
   print(paste("make figures", "---", round(as.numeric(toc-tic), digits = 4), "minutes"))
 }
 
-obtain_contact_estimates = function(country, age_range = c(0,100), age_bands = NULL, indir= "~/")
+obtain_contact_estimates = function(country, age_range = c(0,100), age_bands = NULL, indir= "~/", period = NULL)
  {
   `%notin%` <- Negate(`%in%`)
 
@@ -547,11 +575,11 @@ obtain_contact_estimates = function(country, age_range = c(0,100), age_bands = N
   }
   if(country %notin% c("BE", "DE", "FI", "GB", "IT", "LU", "NL", "PL", "FR")) stop("country should take one of those values: BE, DE, FI, GB, IT, LU, NL, FR or PL")
 
-  prepare_contactsurvey_and_demographic_data(country, indir)
-  read_and_clean(country, age_range, indir)
-  cross_tabulate(country, indir)
-  estimate_contact_intensities(country, indir)
-  if(!is.null(age_bands)) aggregate_contact_intensities(country, age_range, age_bands, indir)
-  make_figures(country, age_range, age_bands, indir)
+  prepare_contactsurvey_and_demographic_data(country, indir, period)
+  read_and_clean(country, age_range, indir, period)
+  cross_tabulate(country, indir, period)
+  estimate_contact_intensities(country, indir, period)
+  if(!is.null(age_bands)) aggregate_contact_intensities(country, age_range, age_bands, indir, period)
+  make_figures(country, age_range, age_bands, indir, period)
  }
     
